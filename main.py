@@ -26,18 +26,21 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Maasin Day Care Center Registration System")
         self.setMinimumSize(800, 600)
 
-
         file_menu_item = self.menuBar().addMenu("&File")
         help_menu_item = self.menuBar().addMenu("&Help")
         search_menu_item = self.menuBar().addMenu("&Search")
 
-        add_student_action = QAction(QIcon("icons/icons/add.png"), "Add Student", self)
-        add_student_action.triggered.connect(self.insert)
+        add_student_action = QAction("Add Student", self)
         file_menu_item.addAction(add_student_action)
+        add_student_action.triggered.connect(self.insert)
 
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
         about_action.triggered.connect(self.about)
+
+        # add_action = QAction("Add", self)
+        # help_menu_item.addAction(add_action)
+        # add_action.triggered.connect(self.insert())
 
         search_action = QAction(QIcon("icons/icons/search.png"), "Search", self)
         search_action.triggered.connect(self.search)
@@ -112,6 +115,7 @@ class MainWindow(QMainWindow):
     def insert(self):
         dialog = InsertDialog()
         dialog.exec()
+
 
     def search(self):
         name = self.search_input.text()
@@ -359,7 +363,8 @@ class InsertDialog(QDialog):
         self.student_mobile.setPlaceholderText("Mobile")
         layout.addWidget(self.student_mobile)
 
-        # Add a submit button
+        # Create a submit button
+        self.button = QPushButton("Submit")
         self.button.clicked.connect(self.add_student)
         layout.addWidget(self.button)
 
