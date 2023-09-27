@@ -20,7 +20,7 @@ class DatabaseConnection:
                                              database=self.database)
         return connection
 
-
+selected_record_id = None
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -82,6 +82,21 @@ class MainWindow(QMainWindow):
 
         # Detect a cell click
         self.table.cellClicked.connect(self.cell_clicked)
+        self.table.clicked.connect(self.select_record)
+
+    def select_record(self):
+        global selected_record_id  # Use the global variable
+
+        # Get the currently selected row
+        selected_row = self.table.currentRow()
+
+        if selected_row >= 0:
+            # Retrieve data from the selected row
+            record_id = self.table.item(selected_row, 0).text()
+
+            # Set the global variable to the selected record_id
+            selected_record_id = record_id
+
 
     def cell_clicked(self):
         edit_button = QPushButton("Edit Record")
@@ -156,8 +171,7 @@ class MainWindow(QMainWindow):
         about_dialog.exec()
 
     def record(self):
-        data = self.load_data()
-        record_dialog = CheckRecord(data)
+        record_dialog = CheckRecord()
         record_dialog.exec()
 
 
@@ -410,7 +424,7 @@ class InsertDialog(QDialog):
 
 
 class CheckRecord(QDialog):
-    def __init__(self, data):
+    def __init__(self):
         super().__init__()
         self.setWindowTitle("Record")
         self.setFixedWidth(400)
@@ -419,11 +433,8 @@ class CheckRecord(QDialog):
         # Create a QVBoxLayout to hold the widgets
         layout = QVBoxLayout()
 
-        self.data = data
-
-
         self.enroll_button = QPushButton("Enroll")
-        self.enroll_button.clicked.connect(self.enroll)
+        # self.enroll_button.clicked.connect(self.enroll)
         self.enroll_button.setFixedSize(100, 40)  # Set the size of the button
         layout.addWidget(self.enroll_button)
 
@@ -434,12 +445,7 @@ class CheckRecord(QDialog):
             ["Student ID", "Assigned Teacher", "Time Schedule", "School Year", "Status"])
 
         # Add widgets to the layout
-
         layout.addWidget(self.record_table)
-
-        # index = self.record_table.currentRow()
-        # teacher = self.record_table.item(index, 2).text()
-        # print(index)
 
         # Set the layout for the dialog
         self.setLayout(layout)
@@ -449,7 +455,6 @@ class CheckRecord(QDialog):
 
         self.load_record()
         # edit_dialog = EditRecordDialog(data)
-
 
         self.record_table.cellClicked.connect(self.cell_clicked)
 
@@ -472,10 +477,11 @@ class CheckRecord(QDialog):
         connection = DatabaseConnection().connect()
         cursor = connection.cursor()
 
-        stud_id = EditDialog()
+        global selected_record_id
+        print(selected_record_id)
 
-        sql = f"SELECT fk_studentid, teacher, timesched, schoolyear, status FROM record_info WHERE fk_studentid = %s"
-        cursor.execute(sql, (stud_id.student_id, ))
+        sql = "SELECT fk_studentid, teacher, timesched, schoolyear, status FROM record_info WHERE fk_studentid = %s"
+        cursor.execute(sql, (selected_record_id, ))
         result = cursor.fetchall()
         self.record_table.setRowCount(0)
         for row_number, row_data in enumerate(result):
@@ -483,8 +489,6 @@ class CheckRecord(QDialog):
             for column_number, data in enumerate(row_data):
                 self.record_table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
         connection.close()
-
-        return result
 
     def edit(self):
         data = self.load_record()
@@ -496,10 +500,11 @@ class CheckRecord(QDialog):
         delete_dialog.exec()
 
     def enroll(self):
-        student_number = self.data[0][0]
-        enroll_dialog = EnrollStudentDialog(student_number)
+        enroll_dialog = EnrollStudentDialog()
         enroll_dialog.exec()
         print('enroll')
+
+
 class EditRecordDialog(QDialog):
     def __init__(self, record):
         super().__init__()
@@ -609,7 +614,7 @@ class DeleteRecordDialog(QDialog):
 
 
 class EnrollStudentDialog(QDialog):
-    def __init__(self, student_number):
+    def __init__(self):
         super().__init__()
         self.setWindowTitle("Enroll Student")
         self.setFixedWidth(300)
@@ -617,7 +622,8 @@ class EnrollStudentDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        self.student_number = student_number
+        index = student_management_sys.table.currentRow()
+        student_firstname = student_management_sys.table.item(index, 1).text()
 
         teacher_label = QLabel("Teacher Assigned:")
         teacher_label.setStyleSheet("color: gray;")  # Style it as a placeholder
@@ -648,7 +654,7 @@ class EnrollStudentDialog(QDialog):
         layout.addWidget(self.school_year)
 
         self.button = QPushButton("Enroll")
-        #self.button.clicked.connect(self.enroll_student())
+        self.button.clicked.connect(self.enroll_student())
         layout.addWidget(self.button)
 
         self.setLayout(layout)
