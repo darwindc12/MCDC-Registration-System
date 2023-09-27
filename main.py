@@ -114,6 +114,10 @@ class MainWindow(QMainWindow):
                 self.table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
         connection.close()
 
+        return result
+
+
+
     def insert(self):
         dialog = InsertDialog()
         dialog.exec()
@@ -152,7 +156,8 @@ class MainWindow(QMainWindow):
         about_dialog.exec()
 
     def record(self):
-        record_dialog = CheckRecord()
+        data = self.load_data()
+        record_dialog = CheckRecord(data)
         record_dialog.exec()
 
 
@@ -405,7 +410,7 @@ class InsertDialog(QDialog):
 
 
 class CheckRecord(QDialog):
-    def __init__(self):
+    def __init__(self, data):
         super().__init__()
         self.setWindowTitle("Record")
         self.setFixedWidth(400)
@@ -413,6 +418,9 @@ class CheckRecord(QDialog):
 
         # Create a QVBoxLayout to hold the widgets
         layout = QVBoxLayout()
+
+        self.data = data
+
 
         self.enroll_button = QPushButton("Enroll")
         self.enroll_button.clicked.connect(self.enroll)
@@ -488,9 +496,8 @@ class CheckRecord(QDialog):
         delete_dialog.exec()
 
     def enroll(self):
-
-        # enroll_data = self.load_record()
-        enroll_dialog = EnrollStudentDialog()
+        student_number = self.data[0][0]
+        enroll_dialog = EnrollStudentDialog(student_number)
         enroll_dialog.exec()
         print('enroll')
 class EditRecordDialog(QDialog):
@@ -602,71 +609,69 @@ class DeleteRecordDialog(QDialog):
 
 
 class EnrollStudentDialog(QDialog):
-    def __init__(self):
+    def __init__(self, student_number):
         super().__init__()
         self.setWindowTitle("Enroll Student")
         self.setFixedWidth(300)
         self.setFixedHeight(200)
 
         layout = QVBoxLayout()
-        #
-        # self.data = data
-        # print(self.data)
-        # self.student_id = self.data[0][0]
 
-        # teacher_label = QLabel("Teacher Assigned:")
-        # teacher_label.setStyleSheet("color: gray;")  # Style it as a placeholder
-        # layout.addWidget(teacher_label)
-        #
-        # self.teacher = QComboBox()
-        # teachers = ["Teacher 1", "Teacher 2"]
-        # self.teacher.addItems(teachers)
-        # self.teacher.setCurrentText(self.teacher)
-        # layout.addWidget(self.teacher)
-        #
-        # schedule_label = QLabel("Time Schedule:")
-        # schedule_label.setStyleSheet("color: gray;")  # Style it as a placeholder
-        # layout.addWidget(schedule_label)
-        #
-        # self.time_schedule = QComboBox()
-        # schedule = ["8:00 AM - 10:00 AM", "10:00 AM - 12:00 NN"]
-        # self.time_schedule.addItems(schedule)
-        # self.time_schedule.setCurrentText(self.time_schedule)
-        # layout.addWidget(self.time_schedule)
-        #
-        # schoolyear_label = QLabel("School Year (YYYY-YYYY):")
-        # schoolyear_label.setStyleSheet("color: gray;")  # Style it as a placeholder
-        # layout.addWidget(schoolyear_label)
-        #
-        # self.school_year = QLineEdit()
-        # self.school_year.setPlaceholderText("School Year")
-        # layout.addWidget(self.school_year)
-        #
-        # self.button = QPushButton("Enroll")
-        # #self.button.clicked.connect(self.enroll_student())
-        # layout.addWidget(self.button)
+        self.student_number = student_number
+
+        teacher_label = QLabel("Teacher Assigned:")
+        teacher_label.setStyleSheet("color: gray;")  # Style it as a placeholder
+        layout.addWidget(teacher_label)
+
+        self.teacher = QComboBox()
+        teachers = ["Teacher 1", "Teacher 2"]
+        self.teacher.addItems(teachers)
+        self.teacher.setCurrentText(self.teacher)
+        layout.addWidget(self.teacher)
+
+        schedule_label = QLabel("Time Schedule:")
+        schedule_label.setStyleSheet("color: gray;")  # Style it as a placeholder
+        layout.addWidget(schedule_label)
+
+        self.time_schedule = QComboBox()
+        schedule = ["8:00 AM - 10:00 AM", "10:00 AM - 12:00 NN"]
+        self.time_schedule.addItems(schedule)
+        self.time_schedule.setCurrentText(self.time_schedule)
+        layout.addWidget(self.time_schedule)
+
+        schoolyear_label = QLabel("School Year (YYYY-YYYY):")
+        schoolyear_label.setStyleSheet("color: gray;")  # Style it as a placeholder
+        layout.addWidget(schoolyear_label)
+
+        self.school_year = QLineEdit()
+        self.school_year.setPlaceholderText("School Year")
+        layout.addWidget(self.school_year)
+
+        self.button = QPushButton("Enroll")
+        #self.button.clicked.connect(self.enroll_student())
+        layout.addWidget(self.button)
 
         self.setLayout(layout)
 
-    # def enroll_student(self):
-    #     try:
-    #         connection = DatabaseConnection().connect()
-    #         cursor = connection.cursor()
-    #         sql = "INSERT INTO record_info (fk_studentid, teacher, timesched, schoolyear)" \
-    #               "VALUES (%s, %s, %s, %s, %s)"
-    #         cursor.execute(sql,
-    #                        (self.student_id, self.teacher.itemText(self.teacher.currentIndex()),
-    #                         self.time_schedule.itemText(self.time_schedule.currentIndex()),
-    #                         self.school_year.text()))
-    #         connection.commit()
-    #         cursor.close()
-    #         connection.close()
-    #         QMessageBox.information(self, 'Success', 'Record added successfully!')
-    #         load_data = CheckRecord()
-    #         load_data.load_record()
-    #     except Exception as e:
-    #         QMessageBox.warning(self, 'Error', 'Record adding failed!')
-    #        print(f"An error occurred: {e}")
+    def enroll_student(self):
+        try:
+            connection = DatabaseConnection().connect()
+            cursor = connection.cursor()
+            sql = "INSERT INTO record_info (fk_studentid, teacher, timesched, schoolyear)" \
+                  "VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(sql,
+                           (self.student_number, self.teacher.itemText(self.teacher.currentIndex()),
+                            self.time_schedule.itemText(self.time_schedule.currentIndex()),
+                            self.school_year.text()))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            QMessageBox.information(self, 'Success', 'Record added successfully!')
+            load_data = CheckRecord()
+            load_data.load_record()
+        except Exception as e:
+            QMessageBox.warning(self, 'Error', 'Record adding failed!')
+            print(f"An error occurred: {e}")
 
 app = QApplication(sys.argv)
 student_management_sys = MainWindow()
