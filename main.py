@@ -20,7 +20,10 @@ class DatabaseConnection:
                                              database=self.database)
         return connection
 
-selected_record_id = None
+
+selected_student_id = None
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -80,12 +83,14 @@ class MainWindow(QMainWindow):
         self.statusbar = QStatusBar()
         self.setStatusBar(self.statusbar)
 
+        self.load_data()
+
         # Detect a cell click
         self.table.cellClicked.connect(self.cell_clicked)
         self.table.clicked.connect(self.select_record)
 
     def select_record(self):
-        global selected_record_id  # Use the global variable
+        global selected_student_id  # Use the global variable
 
         # Get the currently selected row
         selected_row = self.table.currentRow()
@@ -95,7 +100,7 @@ class MainWindow(QMainWindow):
             record_id = self.table.item(selected_row, 0).text()
 
             # Set the global variable to the selected record_id
-            selected_record_id = record_id
+            selected_student_id = record_id
 
 
     def cell_clicked(self):
@@ -129,9 +134,6 @@ class MainWindow(QMainWindow):
                 self.table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
         connection.close()
 
-        return result
-
-
 
     def insert(self):
         dialog = InsertDialog()
@@ -147,12 +149,12 @@ class MainWindow(QMainWindow):
         connection.close()
 
         # Assuming 'table' is your Qt table widget
-        student_management_sys.table.setRowCount(0)  # Clear the table
+        main_window.table.setRowCount(0)  # Clear the table
         for row in result:
-            student_management_sys.table.insertRow(student_management_sys.table.rowCount())
+            main_window.table.insertRow(main_window.table.rowCount())
             for col, value in enumerate(row):
                 item = QTableWidgetItem(str(value))
-                student_management_sys.table.setItem(student_management_sys.table.rowCount() - 1, col, item)
+                main_window.table.setItem(main_window.table.rowCount() - 1, col, item)
 
     # def search(self):
     #     search_dialog = SearchDialog()
@@ -194,9 +196,9 @@ class EditDialog(QDialog):
         layout = QVBoxLayout()
 
         # Get student name from selected row
-        index = student_management_sys.table.currentRow()
-        student_firstname = student_management_sys.table.item(index, 1).text()
-        self.student_id = student_management_sys.table.item(index, 0).text()
+        index = main_window.table.currentRow()
+        student_firstname = main_window.table.item(index, 1).text()
+        self.student_id = main_window.table.item(index, 0).text()
 
         # Add student firstname widget
         self.student_firstname = QLineEdit(student_firstname)
@@ -204,13 +206,13 @@ class EditDialog(QDialog):
         layout.addWidget(self.student_firstname)
 
         # Add student lastname widget
-        student_lastname = student_management_sys.table.item(index, 2).text()
+        student_lastname = main_window.table.item(index, 2).text()
         self.student_lastname = QLineEdit(student_lastname)
         self.student_lastname.setPlaceholderText("Lastname")
         layout.addWidget(self.student_lastname)
 
         # Add student middlename widget
-        student_middlename = student_management_sys.table.item(index, 3).text()
+        student_middlename = main_window.table.item(index, 3).text()
         self.student_middlename = QLineEdit(student_middlename)
         self.student_middlename.setPlaceholderText("Middlename")
         layout.addWidget(self.student_middlename)
@@ -221,7 +223,7 @@ class EditDialog(QDialog):
         layout.addWidget(placeholder_label)
 
         # Insert student birthday widget
-        student_birthdate_text = student_management_sys.table.item(index, 4).text()
+        student_birthdate_text = main_window.table.item(index, 4).text()
         date_format = "yyyy-dd-MM"
         student_birthdate = QDate.fromString(student_birthdate_text, date_format)
         self.student_birthdate = QDateEdit(student_birthdate)
@@ -235,7 +237,7 @@ class EditDialog(QDialog):
         layout.addWidget(placeholder_label)
 
         # Add student gender widget
-        student_gender = student_management_sys.table.item(index, 5).text()
+        student_gender = main_window.table.item(index, 5).text()
         self.student_gender = QComboBox()
         courses = ["Male", "Female"]
         self.student_gender.addItems(courses)
@@ -243,19 +245,19 @@ class EditDialog(QDialog):
         layout.addWidget(self.student_gender)
 
         # Add student address widget
-        student_address = student_management_sys.table.item(index, 6).text()
+        student_address = main_window.table.item(index, 6).text()
         self.student_address = QLineEdit(student_address)
         self.student_address.setPlaceholderText("Address")
         layout.addWidget(self.student_address)
 
         # Add student guardian widget
-        student_guardian = student_management_sys.table.item(index, 7).text()
+        student_guardian = main_window.table.item(index, 7).text()
         self.student_guardian = QLineEdit(student_guardian)
         self.student_guardian.setPlaceholderText("Guardian")
         layout.addWidget(self.student_guardian)
 
         # Add mobile widget
-        student_mobile = student_management_sys.table.item(index, 8).text()
+        student_mobile = main_window.table.item(index, 8).text()
         self.student_mobile = QLineEdit(student_mobile)
         self.student_mobile.setPlaceholderText("Mobile")
         layout.addWidget(self.student_mobile)
@@ -284,7 +286,7 @@ class EditDialog(QDialog):
             cursor.close()
             connection.close()
             QMessageBox.information(self, 'Success', 'Data updated successfully!')
-            student_management_sys.load_data()
+            main_window.load_data()
         except Exception as e:
             QMessageBox.warning(self, 'Error', 'Data edit failed!')
             print(f"An error occurred: {e}")
@@ -309,8 +311,8 @@ class DeleteDialog(QDialog):
 
     def delete_button(self):
         # Get select row index and student_id
-        index = student_management_sys.table.currentRow()
-        student_id = student_management_sys.table.item(index, 0).text()
+        index = main_window.table.currentRow()
+        student_id = main_window.table.item(index, 0).text()
 
         connection = DatabaseConnection().connect()
         cursor = connection.cursor()
@@ -318,7 +320,7 @@ class DeleteDialog(QDialog):
         connection.commit()
         cursor.close()
         connection.close()
-        student_management_sys.load_data()
+        main_window.load_data()
 
         self.close()
 
@@ -417,7 +419,7 @@ class InsertDialog(QDialog):
             cursor.close()
             connection.close()
             QMessageBox.information(self, 'Success', 'Data inserted successfully!')
-            student_management_sys.load_data()
+            main_window.load_data()
         except Exception as e:
             QMessageBox.warning(self, 'Error', 'Data insertion failed!')
             print(f"An error occurred: {e}")
@@ -433,8 +435,12 @@ class CheckRecord(QDialog):
         # Create a QVBoxLayout to hold the widgets
         layout = QVBoxLayout()
 
+        self.teacher = None
+        self.time_schedule = None
+        self.attended_year = None
+
         self.enroll_button = QPushButton("Enroll")
-        # self.enroll_button.clicked.connect(self.enroll)
+        self.enroll_button.clicked.connect(self.enroll)
         self.enroll_button.setFixedSize(100, 40)  # Set the size of the button
         layout.addWidget(self.enroll_button)
 
@@ -455,6 +461,10 @@ class CheckRecord(QDialog):
 
         self.load_record()
         # edit_dialog = EditRecordDialog(data)
+
+        self.record_table.clicked.connect(self.select_record)
+
+
 
         self.record_table.cellClicked.connect(self.cell_clicked)
 
@@ -477,11 +487,10 @@ class CheckRecord(QDialog):
         connection = DatabaseConnection().connect()
         cursor = connection.cursor()
 
-        global selected_record_id
-        print(selected_record_id)
+        global selected_student_id
 
         sql = "SELECT fk_studentid, teacher, timesched, schoolyear, status FROM record_info WHERE fk_studentid = %s"
-        cursor.execute(sql, (selected_record_id, ))
+        cursor.execute(sql, (selected_student_id,))
         result = cursor.fetchall()
         self.record_table.setRowCount(0)
         for row_number, row_data in enumerate(result):
@@ -490,9 +499,20 @@ class CheckRecord(QDialog):
                 self.record_table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
         connection.close()
 
+    def select_record(self):
+        # Get the currently selected row
+        selected_row = self.record_table.currentRow()
+
+        if selected_row >= 0:
+            # Retrieve data from the selected row
+            # record_id = self.record_table.item(selected_row, 0).text()
+            self.teacher = self.record_table.item(selected_row, 1).text()
+            self.time_schedule = self.record_table.item(selected_row, 2).text()
+            self.attended_year = self.record_table.item(selected_row, 3).text()
+
+
     def edit(self):
-        data = self.load_record()
-        edit_dialog = EditRecordDialog(data)
+        edit_dialog = UpdateRecordDialog(self.teacher, self.time_schedule, self.attended_year)
         edit_dialog.exec()
 
     def delete(self):
@@ -502,29 +522,27 @@ class CheckRecord(QDialog):
     def enroll(self):
         enroll_dialog = EnrollStudentDialog()
         enroll_dialog.exec()
-        print('enroll')
 
 
-class EditRecordDialog(QDialog):
-    def __init__(self, record):
+
+class UpdateRecordDialog(QDialog):
+    def __init__(self, teacher, time_schedule, school_year):
         super().__init__()
         self.setWindowTitle("Update Student Record")
         self.setFixedWidth(300)
         self.setFixedHeight(200)
 
-        self.record = record
-        print(self.record)
-
         layout = QVBoxLayout()
 
-        self.student_id = self.record[0][0]
+        self.assigned_teacher = teacher
+        self.assigned_schedule = time_schedule
+        self.enrolled_year = school_year
 
         teacher_label = QLabel("Teacher Assigned:")
         teacher_label.setStyleSheet("color: gray;")  # Style it as a placeholder
         layout.addWidget(teacher_label)
 
         self.teacher = QComboBox()
-        self.assigned_teacher = self.record[0][1]
         teachers = ["Teacher 1", "Teacher 2"]
         self.teacher.addItems(teachers)
         self.teacher.setCurrentText(self.assigned_teacher)
@@ -535,18 +553,16 @@ class EditRecordDialog(QDialog):
         layout.addWidget(schedule_label)
 
         self.time_schedule = QComboBox()
-        self.schedule = self.record[0][2]
         schedule = ["8:00 AM - 10:00 AM", "10:00 AM - 12:00 NN"]
         self.time_schedule.addItems(schedule)
-        self.time_schedule.setCurrentText(self.schedule)
+        self.time_schedule.setCurrentText(self.assigned_schedule)
         layout.addWidget(self.time_schedule)
 
         schoolyear_label = QLabel("School Year (YYYY-YYYY):")
         schoolyear_label.setStyleSheet("color: gray;")  # Style it as a placeholder
         layout.addWidget(schoolyear_label)
 
-        self.school_year_attend = self.record[0][3]
-        self.school_year = QLineEdit(self.school_year_attend)
+        self.school_year = QLineEdit(self.enrolled_year)
         self.school_year.setPlaceholderText("School Year")
         layout.addWidget(self.school_year)
 
@@ -560,23 +576,25 @@ class EditRecordDialog(QDialog):
         try:
             connection = DatabaseConnection().connect()
             cursor = connection.cursor()
+
+            global selected_student_id
+
             sql = "UPDATE record_info SET teacher = %s, timesched = %s, schoolyear = %s" \
                   "WHERE fk_studentid = %s"
             cursor.execute(sql,
                            (self.teacher.itemText(self.teacher.currentIndex()),
                             self.time_schedule.itemText(self.time_schedule.currentIndex()),
                             self.school_year.text(),
-                            self.student_id))
+                            selected_student_id))
             connection.commit()
             cursor.close()
             connection.close()
             QMessageBox.information(self, 'Success', 'Record updated successfully!')
-            load_data = CheckRecord()
-            load_data.load_record()
+            self.close()
         except Exception as e:
             QMessageBox.warning(self, 'Error', 'Record edit failed!')
             print(f"An error occurred: {e}")
-
+            self.close()
 
 class DeleteRecordDialog(QDialog):
     def __init__(self):
@@ -622,9 +640,6 @@ class EnrollStudentDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        index = student_management_sys.table.currentRow()
-        student_firstname = student_management_sys.table.item(index, 1).text()
-
         teacher_label = QLabel("Teacher Assigned:")
         teacher_label.setStyleSheet("color: gray;")  # Style it as a placeholder
         layout.addWidget(teacher_label)
@@ -632,7 +647,6 @@ class EnrollStudentDialog(QDialog):
         self.teacher = QComboBox()
         teachers = ["Teacher 1", "Teacher 2"]
         self.teacher.addItems(teachers)
-        self.teacher.setCurrentText(self.teacher)
         layout.addWidget(self.teacher)
 
         schedule_label = QLabel("Time Schedule:")
@@ -642,7 +656,6 @@ class EnrollStudentDialog(QDialog):
         self.time_schedule = QComboBox()
         schedule = ["8:00 AM - 10:00 AM", "10:00 AM - 12:00 NN"]
         self.time_schedule.addItems(schedule)
-        self.time_schedule.setCurrentText(self.time_schedule)
         layout.addWidget(self.time_schedule)
 
         schoolyear_label = QLabel("School Year (YYYY-YYYY):")
@@ -654,7 +667,7 @@ class EnrollStudentDialog(QDialog):
         layout.addWidget(self.school_year)
 
         self.button = QPushButton("Enroll")
-        self.button.clicked.connect(self.enroll_student())
+        self.button.clicked.connect(self.enroll_student)
         layout.addWidget(self.button)
 
         self.setLayout(layout)
@@ -663,10 +676,12 @@ class EnrollStudentDialog(QDialog):
         try:
             connection = DatabaseConnection().connect()
             cursor = connection.cursor()
+            global selected_student_id
+
             sql = "INSERT INTO record_info (fk_studentid, teacher, timesched, schoolyear)" \
-                  "VALUES (%s, %s, %s, %s, %s)"
+                  "VALUES (%s, %s, %s, %s)"
             cursor.execute(sql,
-                           (self.student_number, self.teacher.itemText(self.teacher.currentIndex()),
+                           (selected_student_id, self.teacher.itemText(self.teacher.currentIndex()),
                             self.time_schedule.itemText(self.time_schedule.currentIndex()),
                             self.school_year.text()))
             connection.commit()
@@ -679,8 +694,9 @@ class EnrollStudentDialog(QDialog):
             QMessageBox.warning(self, 'Error', 'Record adding failed!')
             print(f"An error occurred: {e}")
 
-app = QApplication(sys.argv)
-student_management_sys = MainWindow()
-student_management_sys.show()
-student_management_sys.load_data()
-sys.exit(app.exec())
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec())
