@@ -98,6 +98,14 @@ class MainWindow(QMainWindow):
         if selected_row >= 0:
             # Retrieve data from the selected row
             record_id = self.table.item(selected_row, 0).text()
+            self.firstname = self.table.item(selected_row, 1).text()
+            self.lastname = self.table.item(selected_row, 2).text()
+            self.middlename = self.table.item(selected_row, 3).text()
+            self.birthdate = self.table.item(selected_row, 4).text()
+            self.gender = self.table.item(selected_row, 5).text()
+            self.address = self.table.item(selected_row, 6).text()
+            self.guardian = self.table.item(selected_row, 7).text()
+            self.mobile_number = self.table.item(selected_row, 8).text()
 
             # Set the global variable to the selected record_id
             selected_student_id = record_id
@@ -161,7 +169,8 @@ class MainWindow(QMainWindow):
     #     search_dialog.exec()
 
     def edit(self):
-        edit_dialog = EditDialog()
+        edit_dialog = EditDialog(self.firstname, self.lastname, self.middlename, self.birthdate, self.gender,
+                                 self.address, self.guardian, self.mobile_number)
         edit_dialog.exec()
 
     def delete(self):
@@ -187,11 +196,20 @@ class AboutDialog(QMessageBox):
         self.setText(content)
 
 class EditDialog(QDialog):
-    def __init__(self):
+    def __init__(self, firstname, lastname, middlename, birthdate, gender, address, guardian, mobile_number):
         super().__init__()
         self.setWindowTitle("Update Student Data")
         self.setFixedWidth(300)
         self.setFixedHeight(300)
+
+        self.firstname = firstname
+        self.lastname = lastname
+        self.middlename = middlename
+        self.birthdate = birthdate
+        self.gender = gender
+        self.address = address
+        self.guardian = guardian
+        self.mobile_number = mobile_number
 
         layout = QVBoxLayout()
 
@@ -201,19 +219,19 @@ class EditDialog(QDialog):
         self.student_id = main_window.table.item(index, 0).text()
 
         # Add student firstname widget
-        self.student_firstname = QLineEdit(student_firstname)
+        self.student_firstname = QLineEdit(self.firstname)
         self.student_firstname.setPlaceholderText("Firstname")
         layout.addWidget(self.student_firstname)
 
         # Add student lastname widget
-        student_lastname = main_window.table.item(index, 2).text()
-        self.student_lastname = QLineEdit(student_lastname)
+        # student_lastname = main_window.table.item(index, 2).text()
+        self.student_lastname = QLineEdit(self.lastname)
         self.student_lastname.setPlaceholderText("Lastname")
         layout.addWidget(self.student_lastname)
 
         # Add student middlename widget
-        student_middlename = main_window.table.item(index, 3).text()
-        self.student_middlename = QLineEdit(student_middlename)
+        # student_middlename = main_window.table.item(index, 3).text()
+        self.student_middlename = QLineEdit(self.middlename)
         self.student_middlename.setPlaceholderText("Middlename")
         layout.addWidget(self.student_middlename)
 
@@ -223,9 +241,9 @@ class EditDialog(QDialog):
         layout.addWidget(placeholder_label)
 
         # Insert student birthday widget
-        student_birthdate_text = main_window.table.item(index, 4).text()
+        # student_birthdate_text = main_window.table.item(index, 4).text()
         date_format = "yyyy-dd-MM"
-        student_birthdate = QDate.fromString(student_birthdate_text, date_format)
+        student_birthdate = QDate.fromString(self.birthdate, date_format)
         self.student_birthdate = QDateEdit(student_birthdate)
         self.student_birthdate.setCalendarPopup(True)  # Enable the calendar popup
         self.student_birthdate.setDisplayFormat("yyyy-dd-MM")
@@ -237,28 +255,28 @@ class EditDialog(QDialog):
         layout.addWidget(placeholder_label)
 
         # Add student gender widget
-        student_gender = main_window.table.item(index, 5).text()
+        # student_gender = main_window.table.item(index, 5).text()
         self.student_gender = QComboBox()
         courses = ["Male", "Female"]
         self.student_gender.addItems(courses)
-        self.student_gender.setCurrentText(student_gender)
+        self.student_gender.setCurrentText(self.gender)
         layout.addWidget(self.student_gender)
 
         # Add student address widget
-        student_address = main_window.table.item(index, 6).text()
-        self.student_address = QLineEdit(student_address)
+        # student_address = main_window.table.item(index, 6).text()
+        self.student_address = QLineEdit(self.address)
         self.student_address.setPlaceholderText("Address")
         layout.addWidget(self.student_address)
 
         # Add student guardian widget
-        student_guardian = main_window.table.item(index, 7).text()
-        self.student_guardian = QLineEdit(student_guardian)
+        # student_guardian = main_window.table.item(index, 7).text()
+        self.student_guardian = QLineEdit(self.student_guardian)
         self.student_guardian.setPlaceholderText("Guardian")
         layout.addWidget(self.student_guardian)
 
         # Add mobile widget
-        student_mobile = main_window.table.item(index, 8).text()
-        self.student_mobile = QLineEdit(student_mobile)
+        # student_mobile = main_window.table.item(index, 8).text()
+        self.student_mobile = QLineEdit(self.student_mobile)
         self.student_mobile.setPlaceholderText("Mobile")
         layout.addWidget(self.student_mobile)
 
