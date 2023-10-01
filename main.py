@@ -745,9 +745,6 @@ app = QApplication(sys.argv)
 # Create the main window instance
 main_window = MainWindow()
 
-# Create the record dialog instance
-record_dialog = CheckRecord()
-
 # Show the main window
 main_window.show()
 
